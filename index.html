@@ -26,6 +26,16 @@ button:disabled{opacity:.5}
 <div id="qr"></div>
 <textarea id="conf" readonly style="display:none"></textarea>
 <button class="copy" id="cp" style="display:none">复制配置全文（WireGuard 导入用）</button>
+
+<div id="guide" style="display:none;margin-top:22px;border-top:1px solid rgba(212,175,55,.25);padding-top:18px">
+<div style="font-size:15px;color:#f5d76e;font-weight:800;margin-bottom:10px">📖 各平台连接教程</div>
+<div style="font-size:13px;color:#c9c6e0;line-height:1.9">
+<b style="color:#c9a0ff">🪟 Windows / 💻 macOS</b>：安装 WireGuard 官方客户端（wireguard.com/install）→ 上方"复制配置全文"存为 <code>sg.conf</code> → 客户端"从文件导入隧道"→ 点"连接"。<br>
+<b style="color:#c9a0ff">🤖 安卓</b>：应用商店装 WireGuard → 点"扫二维码"扫上方二维码 → 命名"星际之门"→ 连接。<br>
+<b style="color:#c9a0ff">📱 iPhone</b>：App Store 装 WireGuard → 点"+"→"扫描二维码"→ 连接。<br>
+<b style="color:#c9a0ff">✅ 验证</b>：连接后浏览器打开 ipinfo.io，显示 Tokyo, JP 即成功。
+</div></div>
+<button class="copy" id="gb" style="margin-top:14px">📖 怎么连？（各平台教程）</button>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script>
@@ -46,5 +56,6 @@ $("go").onclick=async()=>{
   }catch(e){ $("msg").textContent=e.message||"网络异常，请重试"; }
   $("go").disabled=false;
 };
+$("gb").onclick=()=>{const g=document.getElementById("guide");g.style.display=g.style.display==="none"?"block":"none";};
 $("cp").onclick=()=>{ navigator.clipboard.writeText($("conf").value); $("cp").textContent="✓ 已复制，去 WireGuard App 导入即可"; };
 </script></body></html>
