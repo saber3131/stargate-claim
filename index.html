@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>星际之门VPN · 席位领取</title>
+<style>
+body{margin:0;background:#070512;color:#efecff;font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;box-sizing:border-box}
+.card{width:100%;max-width:420px;background:#12122a;border:1px solid rgba(212,175,55,.25);border-radius:20px;padding:28px}
+h1{margin:0 0 4px;font-size:22px;color:#f5d76e;text-align:center}
+.sub{margin:0 0 22px;font-size:12px;color:#9a97b8;text-align:center;letter-spacing:1px}
+label{display:block;font-size:12.5px;color:#c9a0ff;margin:14px 0 6px}
+input{width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;border:1px solid rgba(212,175,55,.3);background:#0d0d22;color:#efecff;font-size:15px}
+button{width:100%;margin-top:18px;padding:14px;border:0;border-radius:12px;background:linear-gradient(135deg,#7c4dff,#d4af37);color:#fff;font-size:16px;font-weight:800;cursor:pointer}
+button:disabled{opacity:.5}
+.msg{margin-top:12px;font-size:13px;color:#ff8a8a;min-height:18px;text-align:center}
+.ok{color:#8affc1}
+#qr{margin:18px auto 0;background:#fff;padding:10px;border-radius:14px;width:200px;height:200px;display:none}
+#conf{width:100%;height:120px;margin-top:14px;background:#0d0d22;color:#8affc1;border:1px solid rgba(212,175,55,.3);border-radius:12px;padding:10px;font-size:11px;font-family:monospace;resize:none;box-sizing:border-box}
+.copy{background:#0d0d22;border:1px solid rgba(212,175,55,.4);color:#f5d76e;margin-top:10px;font-size:13px;padding:10px}
+</style></head>
+<body><div class="card">
+<h1>🚪 星际之门 VPN</h1><p class="sub">紫微星会 · 东京节点席位领取</p>
+<label>通行证邮箱</label><input id="em" type="email" placeholder="您在紫微星会注册的邮箱">
+<label>通行证密码</label><input id="pw" type="password" placeholder="登录密码">
+<label>订单号（购买成功页/账单里以 stargate- 开头）</label><input id="ref" placeholder="stargate-xxxxxxxx">
+<button id="go">验证并领取我的专属席位</button>
+<div class="msg" id="msg"></div>
+<div id="qr"></div>
+<textarea id="conf" readonly style="display:none"></textarea>
+<button class="copy" id="cp" style="display:none">复制配置全文（WireGuard 导入用）</button>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>
+const SB="https://zscmuvwzmawncovkzfdm.supabase.co", ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzY211dnd6bWF3bmNvdmt6ZmRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5NjQ1MzcsImV4cCI6MjA5NzU0MDUzN30.9Jcgs26ikQoTg-LnK7dMYf5Wv5mjWEyYodOTrTvTKEM";
+const $=id=>document.getElementById(id);
+$("go").onclick=async()=>{
+  $("go").disabled=true; $("msg").className="msg"; $("msg").textContent="正在验证…";
+  try{
+    const lr=await fetch(SB+"/auth/v1/token?grant_type=password",{method:"POST",headers:{apikey:ANON,"Content-Type":"application/json"},body:JSON.stringify({email:$("em").value.trim(),password:$("pw").value})});
+    const lj=await lr.json();
+    if(!lj.access_token) throw new Error("邮箱或密码不正确");
+    const cr=await fetch("https://zscmuvwzmawncovkzfdm.supabase.co/functions/v1/stargate-claim",{method:"POST",headers:{Authorization:"Bearer "+lj.access_token,"Content-Type":"application/json"},body:JSON.stringify({order_ref:$("ref").value.trim()})});
+    const cj=await cr.json();
+    if(!cj.ok) throw new Error(cj.message||"领取失败");
+    $("msg").className="msg ok"; $("msg").textContent="🎉 领取成功！席位 "+cj.seat_id+"（请截图保存，本文档仅您可见）";
+    $("conf").value=cj.config; $("conf").style.display="block"; $("cp").style.display="block";
+    if(window.QRCode){ $("qr").innerHTML=""; new QRCode($("qr"),{text:cj.config,width:180,height:180}); $("qr").style.display="block"; }
+  }catch(e){ $("msg").textContent=e.message||"网络异常，请重试"; }
+  $("go").disabled=false;
+};
+$("cp").onclick=()=>{ navigator.clipboard.writeText($("conf").value); $("cp").textContent="✓ 已复制，去 WireGuard App 导入即可"; };
+</script></body></html>
